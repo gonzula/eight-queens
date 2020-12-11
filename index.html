@@ -1,0 +1,280 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Eight Queens</title>
+        <style type="text/css">
+.equalAbsolute {
+    width:50px;
+    height:50px;
+    font-size: 250%;
+    text-align: center;
+}
+        </style>
+        <script>
+            let board = null;
+            let move_stack = [];
+            let current_state = null;
+            let current_i = 0;
+            let current_j = 0;
+
+            let play_timer = null;
+
+            window.onload = function() {
+                reset_board();
+                build_board();
+            }
+
+            function reset_board() {
+                if (play_timer) {
+                    clearInterval(play_timer);
+                }
+                play_timer = null;
+                move_stack = [];
+                board = [];
+                current_i = 0;
+                current_j = 0;
+                current_state = "waiting place";
+
+                for (let j = 0; j < 8; j++) {
+                    let row = [];
+                    for (let i = 0; i < 8; i++) {
+                        row.push(false);
+                    }
+                    board.push(row);
+                }
+                board[0][0] = true;
+                board[4][1] = true;
+                board[7][2] = true;
+                // board[5][3] = true;
+                current_i = 3;
+                current_j = 1;
+                // current_j =
+            }
+
+            function pad(n, width, z) {
+                z = z || '0';
+                n = n + '';
+                return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+            }
+
+            function highlight_lines(lines) {
+                for (let i = 0; i < 11; i++) {
+                    let line = document.getElementById('l' + pad(i, 2));
+                    if (lines.includes(i)) {
+                        line.style.background = "#ccc";
+                    } else {
+                        line.style.background = "#fff";
+                    }
+                }
+            }
+
+            function game_loop() {
+                console.log("game_loop", current_state);
+                if (current_state === "waiting place") {
+                    if (current_i >= 8) {
+                        current_state = "Game solved";
+                        highlight_lines([2]);
+                        pause_clicked();
+                        return;
+                    } else if (current_j >= 8) {
+                        current_state = "pop move";
+                        current_i--;
+                        game_loop();
+                        return;
+                    } else {
+                        board[current_j][current_i] = true;
+                        draw_queens();
+                        draw_hit_area(current_i, current_j);
+                        current_state = "check place";
+                        highlight_lines([3]);
+                    }
+                } else if (current_state == "check place") {
+                    if (can_place(current_i, current_j)) {
+                        highlight_lines([4, 5, 6]);
+                        board[current_j][current_i] = true;
+                        move_stack.push(current_j);
+                        current_i++;
+                        current_j = 0;
+                    } else {
+                        highlight_lines([4]);
+                        board[current_j][current_i] = false;
+                        current_j++;
+                    }
+                    draw_queens();
+                    reset_board_colors();
+                    current_state = "waiting place";
+                } else if (current_state == "pop move") {
+                    highlight_lines([9]);
+                    current_j = move_stack.pop();
+                    board[current_j][current_i] = false;
+                    current_j++;
+                    draw_queens();
+                    reset_board_colors();
+                    current_state = "waiting place";
+                } else {
+                    console.log("unknown state", current_state);
+                }
+            }
+
+            function reset_board_colors() {
+                for (let j = 0; j < 8; j++) {
+                    for (let i = 0; i < 8; i++) {
+                        let td = document.getElementById(cell_id(i, j));
+                        td.style.background = original_cell_color(i, j);
+                    }
+                }
+            }
+
+            function original_cell_color(i, j) {
+                return ["#ffce9e", "#d18b47"][(i + j) % 2];
+            }
+
+            function selected_cell_color(i, j) {
+                return ["#829769", "#646e40"][(i + j) % 2];
+            }
+
+            function good_hit_cell_color(i, j) {
+                return ["#aeb187", "#84794e"][(i + j) % 2];
+            }
+
+            function bad_hit_cell_color(i, j) {
+                return ["red", "red"][(i + j) % 2];
+            }
+
+            function cell_id(i, j) {
+                return 'cell_' + i + j;
+            }
+
+            function build_board() {
+                let table = document.getElementById('board');
+                for (let j = 0; j < 8; j++) {
+                    let tr = document.createElement('tr');
+                    table.appendChild(tr);
+                    for (let i = 0; i < 8; i++) {
+                        let td = document.createElement('td');
+                        tr.appendChild(td);
+                        td.classList.add('equalAbsolute');
+                        td.style.background = original_cell_color(i, j);
+                        td.id = cell_id(i, j);
+                    }
+                }
+            }
+
+            function draw_queens() {
+                for (let j = 0; j < 8; j++) {
+                    for (let i = 0; i < 8; i++) {
+                        let td = document.getElementById(cell_id(i, j));
+                        if (board[j][i]) {
+                            td.innerHTML = '♛';
+                        } else {
+                            td.innerHTML = '&nbsp;';
+                        }
+                    }
+                }
+            }
+
+            function queen_hit_area(i, j) {
+                let cells = [];
+                for (let k = 0; k < 8; k++) {
+                    if (k != i) {
+                        cells.push([k, j]);
+                    }
+                    if (k != j) {
+                        cells.push([i, k]);
+                    }
+                    if (k != 0) {
+                        if (i + k <= 7 && j + k <= 7) {
+                            cells.push([i + k, j + k]);
+                        }
+                        if (i + k <= 7 && j - k >= 0) {
+                            cells.push([i + k, j - k]);
+                        }
+                        if (i - k >= 0 && j + k <= 7) {
+                            cells.push([i - k, j + k]);
+                        }
+                        if (i - k >= 0 && j - k >= 0) {
+                            cells.push([i - k, j - k]);
+                        }
+                    }
+                }
+
+                return cells;
+            }
+
+            function can_place(i, j) {
+                let hit_area = queen_hit_area(i, j);
+                for (let k = 0; k < hit_area.length; k++) {
+                    let cell = hit_area[k];
+                    let x = cell[0];
+                    let y = cell[1];
+                    if (board[y][x]) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            function draw_hit_area(i, j) {
+                let td = document.getElementById(cell_id(i, j));
+                td.style.background = selected_cell_color(i, j);
+
+                let hit_area = queen_hit_area(i, j);
+                for (let k = 0; k < hit_area.length; k++) {
+                    let cell = hit_area[k];
+                    let x = cell[0];
+                    let y = cell[1];
+
+                    let td = document.getElementById(cell_id(x, y));
+                    if (board[y][x]) {
+                        td.style.background = bad_hit_cell_color(x, y);
+                    } else {
+                        td.style.background = good_hit_cell_color(x, y);
+                    }
+                }
+            }
+
+            function restart_clicked() {
+                reset_board();
+                draw_queens();
+                highlight_lines([]);
+            }
+
+            function play_clicked() {
+                play_timer = setInterval(game_loop, 150);
+            }
+
+            function pause_clicked() {
+                if (play_timer) {
+                    clearInterval(play_timer);
+                }
+                play_timer = null;
+            }
+        </script>
+    </head>
+
+    <body>
+        <table id="board" style="border-collapse: collapse;"> </table>
+        <p>
+            <button onClick="game_loop();">Avançar</button>
+            <button onClick="play_clicked();">Play</button>
+            <button onClick="pause_clicked();">Pause</button>
+            <button onClick="restart_clicked();">Restart</button>
+
+            <div class="highlight" style="background: #ffffff"><pre style="line-height: 125%; margin: 0;"><span></span><span id="l00"><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">solve</span>(line<span style="color: #666666">=0</span>):</span>
+  <span id="l01"><span style="color: #008000; font-weight: bold">if</span> line <span style="color: #666666">&gt;</span> <span style="color: #666666">7</span>:</span>
+    <span id="l02"><span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000; font-weight: bold">True</span></span>
+
+  <span id="l03"><span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">8</span>):</span>
+    <span id="l04"><span style="color: #008000; font-weight: bold">if</span> is_available(line, i):</span>
+      <span id="l05">board[line][i] <span style="color: #666666">=</span> QUEEN</span>
+      <span id="l06"><span style="color: #008000; font-weight: bold">if</span> solve(line <span style="color: #666666">+</span> <span style="color: #666666">1</span>):</span>
+        <span id="l07"><span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000; font-weight: bold">True</span></span>
+      <span id="l08"><span style="color: #008000; font-weight: bold">else</span>:</span>
+        <span id="l09">board[line][i] <span style="color: #666666">=</span> EMPTY</span>
+
+  <span id="l10"><span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000; font-weight: bold">False</span></span>
+            </pre></div>
+
+    </body>
+</html>
