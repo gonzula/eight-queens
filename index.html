@@ -91,7 +91,6 @@
                         return;
                     } else if (current_j >= 8) {
                         current_state = "pop move";
-                        current_i--;
                         highlight_lines([10]);
                         add_comment(3, "");
                     } else {
@@ -125,6 +124,8 @@
                     }
                     current_state = "waiting place";
                 } else if (current_state == "pop move") {
+                    current_i--;
+                    add_comment(0, "line = " + current_i);
                     highlight_lines([9]);
                     current_j = move_stack.pop();
                     board[current_j][current_i] = false;
