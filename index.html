@@ -69,28 +69,54 @@
                 }
             }
 
+            function add_comment(i, comment) {
+                let line = document.getElementById('c' + pad(i, 2));
+                if (comment.length) {
+                    line.textContent = "  # " + comment;
+                } else {
+                    line.textContent = "";
+                }
+            }
+
+            function clear_comments() {
+                for (let i = 0; i < 11; i++) {
+                    let line = document.getElementById('c' + pad(i, 2));
+                    line.textContent = "";
+                }
+            }
+
             function game_loop() {
                 console.log("game_loop", current_state);
                 if (current_state === "waiting place") {
+                    add_comment(0, "line = " + current_i);
+                    add_comment(4, "");
                     if (current_i >= 8) {
                         current_state = "Game solved";
                         highlight_lines([2]);
+                        add_comment(2, "Solved!");
                         pause_clicked();
                         return;
                     } else if (current_j >= 8) {
                         current_state = "pop move";
                         current_i--;
-                        game_loop();
-                        return;
+                        highlight_lines([10]);
+                        add_comment(3, "");
                     } else {
+                        if (current_j == 0) {
+                            highlight_lines([0, 3]);
+                            add_comment(1, "False");
+                        } else {
+                            highlight_lines([3]);
+                        }
                         board[current_j][current_i] = true;
                         draw_queens();
                         draw_hit_area(current_i, current_j);
                         current_state = "check place";
-                        highlight_lines([3]);
+                        add_comment(3, "i = " + current_j);
                     }
                 } else if (current_state == "check place") {
                     if (can_place(current_i, current_j)) {
+                        add_comment(4, "True");
                         highlight_lines([4, 5, 6]);
                         board[current_j][current_i] = true;
                         move_stack.push(current_j);
@@ -98,6 +124,7 @@
                         current_j = 0;
                     } else {
                         highlight_lines([4]);
+                        add_comment(4, "False");
                         board[current_j][current_i] = false;
                         current_j++;
                     }
@@ -261,19 +288,19 @@
             <button onClick="pause_clicked();">Pause</button>
             <button onClick="restart_clicked();">Restart</button>
 
-            <div class="highlight" style="background: #ffffff"><pre style="line-height: 125%; margin: 0;"><span></span><span id="l00"><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">solve</span>(line<span style="color: #666666">=0</span>):</span>
-  <span id="l01"><span style="color: #008000; font-weight: bold">if</span> line <span style="color: #666666">&gt;</span> <span style="color: #666666">7</span>:</span>
-    <span id="l02"><span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000; font-weight: bold">True</span></span>
+            <div class="highlight" style="background: #ffffff"><pre style="line-height: 125%; margin: 0;"><span></span><span id="l00"><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">solve</span>(line<span style="color: #666666">=0</span>):</span><span id="c00"></span>
+  <span id="l01"><span style="color: #008000; font-weight: bold">if</span> line <span style="color: #666666">&gt;</span> <span style="color: #666666">7</span>:</span><span id="c01"></span>
+    <span id="l02"><span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000; font-weight: bold">True</span></span><span id="c02"></span>
 
-  <span id="l03"><span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">8</span>):</span>
-    <span id="l04"><span style="color: #008000; font-weight: bold">if</span> is_available(line, i):</span>
-      <span id="l05">board[line][i] <span style="color: #666666">=</span> QUEEN</span>
-      <span id="l06"><span style="color: #008000; font-weight: bold">if</span> solve(line <span style="color: #666666">+</span> <span style="color: #666666">1</span>):</span>
-        <span id="l07"><span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000; font-weight: bold">True</span></span>
-      <span id="l08"><span style="color: #008000; font-weight: bold">else</span>:</span>
-        <span id="l09">board[line][i] <span style="color: #666666">=</span> EMPTY</span>
+  <span id="l03"><span style="color: #008000; font-weight: bold">for</span> i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #008000">range</span>(<span style="color: #666666">8</span>):</span><span id="c03"></span>
+    <span id="l04"><span style="color: #008000; font-weight: bold">if</span> is_available(line, i):</span><span id="c04"></span>
+      <span id="l05">board[line][i] <span style="color: #666666">=</span> QUEEN</span><span id="c05"></span>
+      <span id="l06"><span style="color: #008000; font-weight: bold">if</span> solve(line <span style="color: #666666">+</span> <span style="color: #666666">1</span>):</span><span id="c06"></span>
+        <span id="l07"><span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000; font-weight: bold">True</span></span><span id="c07"></span>
+      <span id="l08"><span style="color: #008000; font-weight: bold">else</span>:</span><span id="c08"></span>
+        <span id="l09">board[line][i] <span style="color: #666666">=</span> EMPTY</span><span id="c09"></span>
 
-  <span id="l10"><span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000; font-weight: bold">False</span></span>
+  <span id="l10"><span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000; font-weight: bold">False</span></span><span id="c10"></span>
             </pre></div>
 
     </body>
